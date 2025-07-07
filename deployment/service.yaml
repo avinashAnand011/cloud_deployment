@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-boot-service
+spec:
+  selector:
+    app: spring-boot-app # Must match the label in your deployment
+  type: NodePort       # Exposes the service on a port on your Minikube node
+  ports:
+    - protocol: TCP
+      port: 8080       # Port the service exposes (within the cluster)
+      targetPort: 8080 # Port the application listens on inside the container
+      nodePort: 30000  # A specific port on the Minikube node (30000-32767)
