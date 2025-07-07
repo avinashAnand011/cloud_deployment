@@ -1,0 +1,41 @@
+<div class="container">
+  <h1>{{ title }}</h1>
+
+  <div class="auth-section">
+    <ng-container *ngIf="!isAuthenticated; else loggedIn">
+      <button (click)="login()">Login with Keycloak</button>
+    </ng-container>
+    <ng-template #loggedIn>
+      <p>Welcome, {{ userName }}! (Roles: {{ userRoles.join(', ') }})</p>
+      <button (click)="logout()">Logout</button>
+    </ng-template>
+  </div>
+
+  <div class="form-section" *ngIf="isAuthenticated && isAdmin">
+    <h2>{{ editMode ? 'Edit Item' : 'Add New Item' }}</h2>
+    <input type="text" [(ngModel)]="currentName" placeholder="Item Name" required>
+    <textarea [(ngModel)]="currentDescription" placeholder="Item Description"></textarea>
+    <button (click)="editMode ? updateItem() : createItem()">{{ editMode ? 'Update Item' : 'Add Item' }}</button>
+    <button *ngIf="editMode" (click)="cancelEdit()" class="cancel-button">Cancel</button>
+  </div>
+  <div class="form-section" *ngIf="isAuthenticated && !isAdmin">
+    <p>You need Admin role to add/edit/delete items.</p>
+  </div>
+
+
+  <div class="list-section">
+    <h2>Items List</h2>
+    <div *ngIf="!isAuthenticated" class="message">Please login to view items.</div>
+    <div *ngIf="isAuthenticated && items.length === 0" class="no-items">No items found. Add some!</div>
+    <ul class="item-list" *ngIf="isAuthenticated && items.length > 0">
+      <li *ngFor="let item of items" class="item-card">
+        <h3>{{ item.name }}</h3>
+        <p>{{ item.description }}</p>
+        <div class="item-actions" *ngIf="isAdmin">
+          <button (click)="editItem(item)" class="edit-button">Edit</button>
+          <button (click)="deleteItem(item.id!)" class="delete-button">Delete</button>
+        </div>
+      </li>
+    </ul>
+  </div>
+</div>
