@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-postgres-deployment
+  namespace: keycloak-ns # Must be in keycloak-ns
+  labels:
+    app: keycloak-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak-postgres
+  template:
+    metadata:
+      labels:
+        app: keycloak-postgres
+    spec:
+      containers:
+        - name: keycloak-postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: "keycloak" # Keycloak's database name
+            - name: POSTGRES_USER
+              value: "keycloak"     # Keycloak's database user
+            - name: POSTGRES_PASSWORD
+              value: "password" # Keycloak's database password (USE KUBERNETES SECRETS IN PRODUCTION!)
+          volumeMounts:
+            - name: keycloak-postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: keycloak-postgres-storage
+          persistentVolumeClaim:
+            claimName: keycloak-postgres-pvc

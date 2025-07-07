@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-boot-config
+  namespace: dev
+data:
+  # The key here will be the filename inside the pod
+  application.properties: |
+   
+    server.port=8080
+
+    # PostgreSQL Database Configuration
+    # Use the Kubernetes service name for PostgreSQL
+    spring.datasource.url=jdbc:postgresql://postgres-service:5432/list
+    spring.datasource.username=postgres
+    spring.datasource.password=postgres
+    spring.datasource.driver-class-name=org.postgresql.Driver
+
+    # JPA/Hibernate Configuration
+    spring.jpa.hibernate.ddl.auto=update
+    spring.jpa.show-sql=true
+    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+    # CORS configuration (for Angular frontend)
+    spring.web.cors.enabled=true
+    spring.web.cors.allowed-origins=*
+    spring.web.cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
+    spring.web.cors.allowed-headers=*
+    spring.web.cors.allow-credentials=true
+
