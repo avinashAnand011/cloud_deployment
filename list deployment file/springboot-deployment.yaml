@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-deployment
+  labels:
+    app: spring-boot-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot-app
+  template:
+    metadata:
+      labels:
+        app: spring-boot-app
+    spec:
+      containers:
+        - name: spring-boot-container
+          image: spring-boot-service:backend-dep-v4
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: spring-config-volume
+              mountPath: /app/config/application.properties 
+              subPath: application.properties 
+      volumes: 
+        - name: spring-config-volume
+          configMap:
+            name: spring-boot-config 
+            items:
+              - key: application.properties 
+                path: application.properties

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-deployment
+  namespace: keycloak-ns
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:23.0.7
+          ports:
+            - containerPort: 8080
+            - containerPort: 8443
+          env:
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://keycloak-postgres-service:5432/keycloak"
+            - name: KC_DB_USERNAME
+              value: "keycloak"
+            - name: KC_DB_PASSWORD
+              value: "password"
+            # Remove KC_HOSTNAME as it's not needed for start-dev and can cause issues
+            # - name: KC_HOSTNAME
+            #   value: "keycloak-service.keycloak-ns.svc.cluster.local"
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: "admin"
+            - name: KC_HTTP_PORT
+              value: "8080"
+            - name: KC_PROXY
+              value: "none" # Keep as "none"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KC_LOG_LEVEL
+              value: "INFO"
+          command: ["/opt/keycloak/bin/kc.sh"]
+          args: ["start-dev"] # <-- CRITICAL CHANGE: Use start-dev
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5

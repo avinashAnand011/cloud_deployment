@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  namespace: dev
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15 # Using PostgreSQL version 15
+          ports:
+            - containerPort: 5432 # Default PostgreSQL port
+          env:
+            - name: POSTGRES_DB
+              value: "list" # Database name
+            - name: POSTGRES_USER
+              value: "postgres"     # Database user
+            - name: POSTGRES_PASSWORD
+              value: "postgres" # Database password (use Kubernetes Secrets in production!)
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data # Path inside the container where data is stored
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc-dev # Link to the Persistent Volume Claim
+

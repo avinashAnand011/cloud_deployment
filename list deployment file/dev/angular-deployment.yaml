@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: angular-frontend-deployment
+  namespace: dev
+  labels:
+    app: angular-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: angular-frontend
+  template:
+    metadata:
+      labels:
+        app: angular-frontend
+    spec:
+      containers:
+        - name: angular-frontend-container
+          image: angular-frontend:ui-dep-v7
+          imagePullPolicy: Never         
+          ports:
+            - containerPort: 80 
+
