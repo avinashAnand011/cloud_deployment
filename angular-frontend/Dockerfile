@@ -25,17 +25,20 @@ RUN ls -l /app/dist/angular-frontend
 # --- Stage 2: Serve the Angular application with Nginx ---
 FROM nginx:alpine AS production
 
+# Remove default nginx static files to avoid serving the default welcome page
+RUN rm -rf /usr/share/nginx/html/*
+
 # Copy the custom Nginx configuration from your local project into the Nginx container
 # This file must be in the same directory as your Dockerfile locally
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy the built Angular application from the 'build' stage to Nginx's default serving directory
 # Ensure '/app/dist/angular-frontend' matches the --output-path from the build stage
-COPY --from=build /app/dist/angular-frontend /usr/share/nginx/html
+COPY --from=build /app/dist/angular-frontend/browser /usr/share/nginx/html
 
 # --- DEBUGGING STEP: List contents of Nginx's serving directory ---
 RUN ls -l /usr/share/nginx/html
-
+RUN chmod -R 777 /usr/share/nginx/html
 # Expose port 80, which Nginx listens on
 EXPOSE 80
 

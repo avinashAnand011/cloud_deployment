@@ -15,6 +15,7 @@
     <h2>{{ editMode ? 'Edit Item' : 'Add New Item' }}</h2>
     <input type="text" [(ngModel)]="currentName" placeholder="Item Name" required>
     <textarea [(ngModel)]="currentDescription" placeholder="Item Description"></textarea>
+    {{currentDescription}}
     <button (click)="editMode ? updateItem() : createItem()">{{ editMode ? 'Update Item' : 'Add Item' }}</button>
     <button *ngIf="editMode" (click)="cancelEdit()" class="cancel-button">Cancel</button>
   </div>

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: angular-frontend-container
-          image: angular-frontend:ui-dep-v5 
+          image: angular-frontend:ui-dep-v7 
           imagePullPolicy: Never         
           ports:
             - containerPort: 80 
