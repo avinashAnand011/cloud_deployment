@@ -10,7 +10,7 @@ on:
     paths:
       - 'deployment/**'    # Path to your Spring Boot project
       - 'angular-frontend/**'     # Path to your Angular project
-      - 'list deployment file/test/**/**' # Path to your Kubernetes YAMLs
+      - 'list deployment file/test/**' # Path to your Kubernetes YAMLs
 
 jobs:
   build-and-push-images:
