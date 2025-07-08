@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: spring-boot-container
-          image: spring-boot-service:backend-dep-v4
-          imagePullPolicy: Never
+          image: avinashanandlucky/spring-boot-service:backend-dep-v4
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           volumeMounts:
