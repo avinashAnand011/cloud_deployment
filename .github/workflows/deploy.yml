@@ -89,33 +89,33 @@ jobs:
         kubectl config use-context minikube # Explicitly set context to minikube
         kubectl config current-context # Verify context
 
-    - name: Deploy to Kubernetes (Dev Namespace)
+    - name: Deploy to Kubernetes (test Namespace)
       run: |
-        echo "Deploying to 'dev' namespace..."
+        echo "Deploying to 'test' namespace..."
         # Navigate to the Kubernetes manifests directory
         # Adjust 'list deployment file' to your actual Kubernetes manifests root directory name
         cd list deployment file
 
-        # Ensure the dev namespace exists (idempotent)
-        kubectl apply -f namespace-dev.yaml
+        # Ensure the test namespace exists (idempotent)
+        kubectl apply -f namespace-test.yaml
 
         # Update image tags in local YAMLs before applying
         # Using 'latest' tags as they are pushed by the build steps
-        sed -i "s|image: spring-boot-service:latest|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" dev/springboot-deployment.yaml
-        sed -i "s|image: angular-frontend:latest|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" dev/angular-deployment.yaml
+        sed -i "s|image: spring-boot-service:backend-dep-v4|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
+        sed -i "s|image: angular-frontend:ui-dep-v10|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
         
-        # Apply all manifests in the 'dev' subdirectory
-        kubectl apply -f dev/
+        # Apply all manifests in the 'test' subdirectory
+        kubectl apply -f test/
 
-        echo "Deployment to 'dev' namespace complete. Checking rollout status..."
-        kubectl rollout status deployment/spring-boot-deployment -n dev
-        kubectl rollout status deployment/angular-frontend-deployment -n dev
+        echo "Deployment to 'test' namespace complete. Checking rollout status..."
+        kubectl rollout status deployment/spring-boot-deployment -n test
+        kubectl rollout status deployment/angular-frontend-deployment -n test
 
     - name: Provide Access URL
       run: |
         MINIKUBE_IP=$(minikube ip)
-        ANGULAR_NODEPORT=$(kubectl get service angular-frontend-service -n dev -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
+        ANGULAR_NODEPORT=$(kubectl get service angular-frontend-service -n test -o jsonpath='{.spec.ports[?(@.name=="http")].nodePort}')
         echo "----------------------------------------------------------------------------------"
-        echo "Application deployed to 'dev' namespace."
+        echo "Application deployed to 'test' namespace."
         echo "Access URL: http://${MINIKUBE_IP}:${ANGULAR_NODEPORT}"
         echo "----------------------------------------------------------------------------------"
