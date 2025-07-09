@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: spring-boot-container
-          image: avinashanandlucky/spring-boot-service:backend-dep-v4
+          image: avinashanandlucky/test-docker-avinash:backend-dep-v4
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
