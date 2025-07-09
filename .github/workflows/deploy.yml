@@ -9,13 +9,12 @@ on:
       - 'deployment/**'
       - 'angular-frontend/**'
       - 'list deployment file/**'
+  
+  workflow_dispatch: # This enables manual triggering from the GitHub UI
 
-  workflow_dispatch:   
-# Allows manual triggering of the workflow from the GitHub Actions UI
 jobs:
   build-and-push-images:
-    # Change 'ubuntu-latest' to target your self-hosted runner using the label you set
-    runs-on: [self-hosted, minikube-deploy] # Use 'self-hosted' and your custom label
+    runs-on: [self-hosted, minikube-deploy]
 
     steps:
     - name: Checkout code
@@ -41,10 +40,7 @@ jobs:
 
     - name: Build and push Spring Boot Docker image
       run: |
-        # IMPORTANT: When using a self-hosted runner with Minikube, you need to point
-        # Docker to Minikube's daemon *before* building images locally.
         eval $(minikube docker-env)
-        
         cd deployment
         docker build -t avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }} .
         docker push avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }}
@@ -70,9 +66,7 @@ jobs:
 
     - name: Build and push Angular Docker image
       run: |
-        # IMPORTANT: Point Docker to Minikube's daemon
         eval $(minikube docker-env)
-        
         cd angular-frontend
         docker build -t avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} .
         docker push avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }}
@@ -82,31 +76,19 @@ jobs:
     # --- Automated Deployment to Minikube ---
     - name: Configure Kubeconfig for Minikube
       run: |
-        # Ensure kubectl is configured to use Minikube
-        # The runner machine must have Minikube and kubectl installed and configured.
-        # This command sets the KUBECONFIG environment variable to Minikube's config.
-        # It's assumed your Minikube context is already set up on the runner machine.
         echo "Setting up Kubeconfig for Minikube..."
-        minikube update-context # Ensure the current context is updated if Minikube IP changes
-        kubectl config use-context minikube # Explicitly set context to minikube
-        kubectl config current-context # Verify context
+        minikube update-context
+        kubectl config use-context minikube
+        kubectl config current-context
 
     - name: Deploy to Kubernetes (test Namespace)
       run: |
         echo "Deploying to 'test' namespace..."
-        # Navigate to the Kubernetes manifests directory
-        # Adjust 'list deployment file' to your actual Kubernetes manifests root directory name
-        cd list deployment file
-
-        # Ensure the test namespace exists (idempotent)
+        # Corrected: Use GITHUB_WORKSPACE and explicitly quote the path
+        cd "${{ github.workspace }}/list deployment file"
         kubectl apply -f namespace-test.yaml
-
-        # Update image tags in local YAMLs before applying
-        # Using 'latest' tags as they are pushed by the build steps
-        sed -i "s|image: spring-boot-service:backend-dep-v4|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
-        sed -i "s|image: angular-frontend:ui-dep-v10|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
-        
-        # Apply all manifests in the 'test' subdirectory
+        sed -i "s|image: spring-boot-service:latest|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
+        sed -i "s|image: angular-frontend:latest|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
         kubectl apply -f test/
 
         echo "Deployment to 'test' namespace complete. Checking rollout status..."
