@@ -11,6 +11,15 @@ on:
       - 'list deployment file/**'
   
   workflow_dispatch: # This enables manual triggering from the GitHub UI
+    inputs:
+      old_spring_boot_image_tag:
+        description: 'Current Spring Boot image tag to replace (e.g., backend-dep-v4 or latest)'
+        required: true
+        default: 'spring-boot-backend-latest' # Default to the common 'latest' tag
+      old_angular_image_tag:
+        description: 'Current Angular image tag to replace (e.g., ui-dep-v10 or latest)'
+        required: true
+        default: 'angular-frontend-latest' # Default to the common 'latest' tag
 
 jobs:
   build-and-push-images:
@@ -84,11 +93,12 @@ jobs:
     - name: Deploy to Kubernetes (test Namespace)
       run: |
         echo "Deploying to 'test' namespace..."
-        # Corrected: Use GITHUB_WORKSPACE and explicitly quote the path
         cd "${{ github.workspace }}/list deployment file"
         kubectl apply -f namespace-test.yaml
-        sed -i "s|image: spring-boot-service:latest|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
-        sed -i "s|image: angular-frontend:latest|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
+        # Use the input 'old_spring_boot_image_tag' for the replacement pattern
+        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_spring_boot_image_tag }}|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
+        # Use the input 'old_angular_image_tag' for the replacement pattern
+        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_angular_image_tag }}|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
         kubectl apply -f test/
 
         echo "Deployment to 'test' namespace complete. Checking rollout status..."
