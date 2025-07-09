@@ -20,6 +20,14 @@ on:
         description: 'Current Angular image tag to replace (e.g., ui-dep-v10 or latest)'
         required: true
         default: 'angular-frontend-latest' # Default to the common 'latest' tag
+      new_spring_boot_image_tag: # New input for the desired new Spring Boot tag
+        description: 'New Spring Boot image tag to deploy (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'spring-boot-backend-latest' # Default to the common 'latest' tag
+      new_angular_image_tag: # New input for the desired new Angular tag
+        description: 'New Angular image tag to deploy (e.g., v1.0.0 or latest)'
+        required: true
+        default: 'angular-frontend-latest' # Default to the common 'latest' tag
 
 jobs:
   build-and-push-images:
@@ -51,9 +59,11 @@ jobs:
       run: |
         eval $(minikube docker-env)
         cd deployment
-        docker build -t avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }} .
-        docker push avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }}
-        docker tag avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }} avinashanandlucky/test-docker-avinash:spring-boot-backend-latest
+        # Use the new_spring_boot_image_tag for building and pushing
+        docker build -t avinashanandlucky/test-docker-avinash:${{ github.event.inputs.new_spring_boot_image_tag }} .
+        docker push avinashanandlucky/test-docker-avinash:${{ github.event.inputs.new_spring_boot_image_tag }}
+        # Also push a 'latest' tag for convenience, but rely on SHA for specific versions
+        docker tag avinashanandlucky/test-docker-avinash:${{ github.event.inputs.new_spring_boot_image_tag }} avinashanandlucky/test-docker-avinash:spring-boot-backend-latest
         docker push avinashanandlucky/test-docker-avinash:spring-boot-backend-latest
 
 
@@ -77,9 +87,11 @@ jobs:
       run: |
         eval $(minikube docker-env)
         cd angular-frontend
-        docker build -t avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} .
-        docker push avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }}
-        docker tag avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} avinashanandlucky/test-docker-avinash:angular-frontend-latest
+        # Use the new_angular_image_tag for building and pushing
+        docker build -t avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.event.inputs.new_angular_image_tag }} .
+        docker push avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.event.inputs.new_angular_image_tag }}
+        # Also push a 'latest' tag for convenience
+        docker tag avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.event.inputs.new_angular_image_tag }} avinashanandlucky/test-docker-avinash:angular-frontend-latest
         docker push avinashanandlucky/test-docker-avinash:angular-frontend-latest
 
     # --- Automated Deployment to Minikube ---
@@ -95,10 +107,10 @@ jobs:
         echo "Deploying to 'test' namespace..."
         cd "${{ github.workspace }}/list deployment file"
         kubectl apply -f namespace-test.yaml
-        # Use the input 'old_spring_boot_image_tag' for the replacement pattern
-        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_spring_boot_image_tag }}|image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest|g" test/springboot-deployment.yaml
-        # Use the input 'old_angular_image_tag' for the replacement pattern
-        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_angular_image_tag }}|image: avinashanandlucky/test-docker-avinash:angular-frontend-latest|g" test/angular-deployment.yaml
+        # Use the input 'old_spring_boot_image_tag' and 'new_spring_boot_image_tag' for replacement
+        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_spring_boot_image_tag }}|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.new_spring_boot_image_tag }}|g" test/springboot-deployment.yaml
+        # Use the input 'old_angular_image_tag' and 'new_angular_image_tag' for replacement
+        sed -i "s|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.old_angular_image_tag }}|image: avinashanandlucky/test-docker-avinash:${{ github.event.inputs.new_angular_image_tag }}|g" test/angular-deployment.yaml
         kubectl apply -f test/
 
         echo "Deployment to 'test' namespace complete. Checking rollout status..."
