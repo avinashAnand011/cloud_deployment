@@ -83,19 +83,11 @@ jobs:
         echo "1. Ensure Minikube is running: 'minikube start'"
         echo "2. Navigate to your Kubernetes manifests directory (e.g., 'cd /path/to/your/repo/list deployment file/dev')"
         echo "3. Update your deployment YAMLs to use the new image tags:"
-<<<<<<< HEAD
-        echo "   - For springboot-deployment.yaml (in dev/ or test/):"
-        echo "     Change 'image: spring-boot-service:backend-dep-v4' to 'image: avinashanandlucky/test-docker-avinash:${{ github.sha }}'"
-        echo "   - For angular-frontend-deployment.yaml (in dev/ or test/):"
-        echo "     Change 'image: angular-frontend:ui-dep-v10' to 'image: avinashanandlucky/test-docker-avinash:${{ github.sha }}'"
-        echo "   (Alternatively, you can just use the 'latest' tag if you're comfortable with that)"
-=======
         echo "   - For springboot-deployment.yaml:"
         echo "     Change 'image: spring-boot-service:latest' (or backend-dep-v4) to 'image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest'"
         echo "   - For angular-frontend-deployment.yaml:"
         echo "     Change 'image: angular-frontend:latest' (or ui-dep-v10) to 'image: avinashanandlucky/test-docker-avinash:angular-frontend-latest'"
         echo "   (Using 'latest' tag for simplicity in manual steps. You can also use the SHA tag for specific versions.)"
->>>>>>> 35bb134 (chnages in deploy file for docker repo)
         echo "4. Apply the updated manifests to your desired namespace (e.g., 'dev'):"
         echo "   kubectl apply -f . # This applies all YAMLs in the current directory"
         echo ""
