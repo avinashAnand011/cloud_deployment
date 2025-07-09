@@ -1,20 +1,18 @@
 # .github/workflows/deploy.yml
 name: Build and Deploy to Kubernetes
 
-# Trigger the workflow on pushes to the 'main' branch
-# You can specify paths to only run if relevant code changes
 on:
   push:
     branches:
       - main
     paths:
-      - 'deployment/**'    # Path to your Spring Boot project
-      - 'angular-frontend/**'     # Path to your Angular project
-      - 'list deployment file/test/**' # Path to your Kubernetes YAMLs
+      - 'deployment/**'             # Path to your Spring Boot project
+      - 'angular-frontend/**'       # Path to your Angular project
+      - 'list deployment file/**'   # Corrected: Path to your Kubernetes YAMLs root folder
 
 jobs:
   build-and-push-images:
-    runs-on: ubuntu-latest # Use a GitHub-hosted runner
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -29,9 +27,8 @@ jobs:
 
     - name: Build Spring Boot JAR
       run: |
-        # Adjust 'deployment' to your actual Spring Boot project directory name
-        cd deployment
-        ./mvnw clean package -DskipTests # Skip tests for faster build in pipeline, run them in a separate test job
+        cd deployment # Adjust to your actual Spring Boot project directory name
+        ./mvnw clean package -DskipTests
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
@@ -41,15 +38,12 @@ jobs:
 
     - name: Build and push Spring Boot Docker image
       run: |
-        # Adjust 'deployment' to your actual Spring Boot project directory name
-        # Replace 'avinashanandlucky' with your actual Docker Hub username
-        # ${{ github.sha }} provides a unique tag based on the commit hash
         cd deployment
-        docker build -t avinashanandlucky/test-docker-avinash:${{ github.sha }} .
-        docker push avinashanandlucky/spring-boot-service:${{ github.sha }}
-        # Also push a 'latest' tag for convenience, but rely on SHA for specific versions
-        docker tag avinashanandlucky/test-docker-avinash:${{ github.sha }} avinashanandlucky/test-docker-avinash:latest
-        docker push avinashanandlucky/test-docker-avinash:latest
+        # Use a distinct tag for Spring Boot within the common repo
+        docker build -t avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }} .
+        docker push avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }}
+        docker tag avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }} avinashanandlucky/test-docker-avinash:spring-boot-backend-latest
+        docker push avinashanandlucky/test-docker-avinash:spring-boot-backend-latest
 
 
     # --- Build and Push Angular Image ---
@@ -60,47 +54,50 @@ jobs:
 
     - name: Install Angular dependencies
       run: |
-        # Adjust 'angular-frontend' to your actual Angular project directory name
-        cd angular-frontend
+        cd angular-frontend # Adjust to your actual Angular project directory name
         npm install
 
     - name: Build Angular application
       run: |
-        # Adjust 'angular-frontend' to your actual Angular project directory name
-        cd angular-frontend
-        # Ensure --base-href is correct for your Nginx setup
+        cd angular-frontend # Adjust to your actual Angular project directory name
         npm run build -- --output-path=./dist/angular-frontend --base-href=/
 
     - name: Build and push Angular Docker image
       run: |
-        # Adjust 'angular-frontend' to your actual Angular project directory name
-        # Replace 'avinashanandlucky' with your actual Docker Hub username
         cd angular-frontend
-        docker build -t avinashanandlucky/test-docker-avinash:${{ github.sha }} .
-        docker push avinashanandlucky/test-docker-avinash:${{ github.sha }}
-        # Also push a 'latest' tag for convenience
-        docker tag avinashanandlucky/test-docker-avinash:${{ github.sha }} avinashanandlucky/test-docker-avinash:latest
-        docker push avinashanandlucky/test-docker-avinash:latest
+        # Use a distinct tag for Angular within the common repo
+        docker build -t avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} .
+        docker push avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }}
+        docker tag avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} avinashanandlucky/test-docker-avinash:angular-frontend-latest
+        docker push avinashanandlucky/test-docker-avinash:angular-frontend-latest
 
     # --- Manual Deployment Instructions ---
     - name: Provide Manual Deployment Instructions
       run: |
         echo "----------------------------------------------------------------------------------"
         echo "Docker images have been successfully built and pushed to Docker Hub:"
-        echo "  - avinashanandlucky/test-docker-avinash:${{ github.sha }}"
-        echo "  - avinashanandlucky/test-docker-avinash:${{ github.sha }}"
+        echo "  - Spring Boot: avinashanandlucky/test-docker-avinash:spring-boot-backend-${{ github.sha }}"
+        echo "  - Angular:     avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }}"
         echo ""
         echo "To deploy these to your local Minikube cluster (e.g., 'dev' namespace):"
         echo "1. Ensure Minikube is running: 'minikube start'"
-        echo "2. Navigate to your list deployment file/test/** directory: 'cd /list deployment file/test/**'"
+        echo "2. Navigate to your Kubernetes manifests directory (e.g., 'cd /path/to/your/repo/list deployment file/dev')"
         echo "3. Update your deployment YAMLs to use the new image tags:"
+<<<<<<< HEAD
         echo "   - For springboot-deployment.yaml (in dev/ or test/):"
         echo "     Change 'image: spring-boot-service:backend-dep-v4' to 'image: avinashanandlucky/test-docker-avinash:${{ github.sha }}'"
         echo "   - For angular-frontend-deployment.yaml (in dev/ or test/):"
         echo "     Change 'image: angular-frontend:ui-dep-v10' to 'image: avinashanandlucky/test-docker-avinash:${{ github.sha }}'"
         echo "   (Alternatively, you can just use the 'latest' tag if you're comfortable with that)"
+=======
+        echo "   - For springboot-deployment.yaml:"
+        echo "     Change 'image: spring-boot-service:latest' (or backend-dep-v4) to 'image: avinashanandlucky/test-docker-avinash:spring-boot-backend-latest'"
+        echo "   - For angular-frontend-deployment.yaml:"
+        echo "     Change 'image: angular-frontend:latest' (or ui-dep-v10) to 'image: avinashanandlucky/test-docker-avinash:angular-frontend-latest'"
+        echo "   (Using 'latest' tag for simplicity in manual steps. You can also use the SHA tag for specific versions.)"
+>>>>>>> 35bb134 (chnages in deploy file for docker repo)
         echo "4. Apply the updated manifests to your desired namespace (e.g., 'dev'):"
-        echo "   kubectl apply -f list deployment file/test/**/dev/ # Or specific files"
+        echo "   kubectl apply -f . # This applies all YAMLs in the current directory"
         echo ""
         echo "Note: For fully automated deployment to a local Minikube, you would typically use a self-hosted GitHub Actions runner on your machine."
         echo "----------------------------------------------------------------------------------"
