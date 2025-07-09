@@ -71,6 +71,7 @@ jobs:
         docker tag avinashanandlucky/test-docker-avinash:angular-frontend-${{ github.sha }} avinashanandlucky/test-docker-avinash:angular-frontend-latest
         docker push avinashanandlucky/test-docker-avinash:angular-frontend-latest
 
+
     # --- Manual Deployment Instructions ---
     - name: Provide Manual Deployment Instructions
       run: |
