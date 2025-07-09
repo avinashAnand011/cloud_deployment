@@ -10,6 +10,8 @@ on:
       - 'angular-frontend/**'
       - 'list deployment file/**'
 
+  workflow_dispatch:   
+# Allows manual triggering of the workflow from the GitHub Actions UI
 jobs:
   build-and-push-images:
     # Change 'ubuntu-latest' to target your self-hosted runner using the label you set
