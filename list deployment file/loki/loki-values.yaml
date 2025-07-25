@@ -1,0 +1,57 @@
+# loki-values.yaml
+# This configuration is optimized for a single-node Minikube deployment.
+# It configures Loki in SingleBinary deployment mode.
+
+loki:
+  deploymentMode: SingleBinary # This tells Helm to deploy a single Loki binary
+
+  # Global affinity override (should be fine, but keep it minimal)
+  affinity: null
+  topologySpreadConstraints: null
+
+  # Configure Loki's storage backend (still needed for the single binary)
+  storage:
+    bucketNames:
+      chunks: loki-chunks
+      ruler: loki-ruler
+      admin: loki-admin
+    type: s3
+    s3:
+      endpoint: http://loki-minio:9000
+      region: us-east-1
+      s3forcepathstyle: true
+      accessKeyId: loki
+      secretAccessKey: supersecret
+
+  schemaConfig:
+    configs:
+      - from: 2020-10-24 # Date from which this schema version is active
+        store: tsdb # Recommended store type for recent Loki versions
+        object_store: s3 # Points to your S3-compatible (MinIO) storage
+        schema: v13 # The latest recommended schema version
+        index:
+          prefix: loki_index_
+          period: 24h
+
+  # --- SingleBinary specific configuration ---
+  # This section configures the *single* Loki pod's Kubernetes deployment settings.
+  singleBinary:
+    replicas: 1 # Ensure only one replica for the single binary pod
+    persistence:
+      enabled: true
+      size: 10Gi # Adjust size as needed for your logs
+      storageClassName: standard # Ensure this StorageClass exists in your cluster
+    affinity: {} # Explicitly nullify affinity for the singleBinary pod
+    topologySpreadConstraints: [] # Explicitly nullify topology spread constraints
+
+
+# Enable and configure the MinIO sub-chart (still needed for storage)
+minio:
+  enabled: true
+  accessKey: loki
+  secretKey: supersecret
+  defaultBuckets: "loki-chunks,loki-ruler,loki-admin"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: standard
